@@ -1,0 +1,130 @@
+﻿@page "/"
+@using BlazorViaCep.Models
+@using System.Runtime.Serialization
+@inject HttpClient Http
+
+<PageTitle>ViaCep API</PageTitle>
+
+<h1>ViaCep API</h1>
+
+<div class="from-group">
+    <label for="cep-Input" <input type="text" class="form-control" id="cepInput" @bind="cep"
+        placeholder="Digite em cep:" />
+
+    </label>
+</div>
+<button class="btn btn-primary mt-2" @onclick="ConsultarCep">
+    Consultar API</button>
+
+
+@if (endereco != null)
+{
+    <h3>Resultado da API</h3>
+
+
+    <table>
+        <tbody>
+            <tr>
+                <td><strong>
+                        CEP:
+                    </strong>
+                </td>
+
+                <td>
+                    @endereco.Cep
+
+                </td>
+
+            </tr>
+            <tr>
+                <td><strong>
+
+                        RUA:
+                    </strong>
+                </td>
+
+                <td>
+                    @endereco.Logradouro
+
+                </td>
+
+            <tr>
+                <td><strong>
+                        BAIRRO:
+                    </strong>
+                </td>
+
+                <td>
+                    @endereco.bairro
+
+                </td>
+            <tr>
+                <td><strong>
+                        CIDADE:
+                    </strong>
+                </td>
+
+                <td>
+                    @endereco.Localidade
+
+                </td>
+
+            </tr>
+
+            </tr>
+
+            </tr>
+        </tbody>
+    </table>
+}
+@code {
+
+    private string cep;
+    private endereco endereco;
+    private string errorMessage;
+    private async Task ConsultarCep()
+    {
+        errorMessage = string.Empty;
+        endereco = null;
+
+
+        if (string.IsNullOrWhiteSpace(cep))
+        {
+            errorMessage = "Por favor, insira um CEP válido.";
+            return;
+        }
+
+        string cepFormatado = new string(cep.Where(char.IsDigit).ToArray());
+
+
+        if (cepFormatado.Length != 8)
+        {
+
+            errorMessage = "O CEP deve conter 8 dígitos.";
+            return;
+        }
+        try
+        {
+            string url = $"https://viacep.com.br/ws/{cepFormatado}/json/";
+
+            endereco = await Http.GetFromJsonAsync<endereco>(url);
+
+
+
+            if (endereco.Cep == null)
+
+
+            {
+                errorMessage = "CEP não encontrado.";
+                endereco = null;
+            }
+        }
+
+        catch (Exception e)
+        {
+
+            errorMessage = $"Erro ao conectar na API:\n {e.Message}.";
+
+        }
+    }
+}
